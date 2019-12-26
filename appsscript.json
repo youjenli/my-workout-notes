@@ -5,6 +5,6 @@
   "exceptionLogging": "STACKDRIVER",
   "webapp": {
     "access": "MYSELF",
-    "executeAs": "USER_DEPLOYING"
+    "executeAs": "USER_ACCESSING"
   }
 }
