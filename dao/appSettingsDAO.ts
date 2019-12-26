@@ -11,7 +11,7 @@ const TRAINING_RECORD_PROPERTY_KEY = 'my_workout_config_key';
 /*
     檢查應用程式設定是否存在
 */
-function didAppSettingsInitialized():boolean {
+function didAppSetup():boolean {
     const userProperties = PropertiesService.getUserProperties();
     if (isObjectLike(userProperties) && isNotBlank(userProperties.getProperty(TRAINING_RECORD_PROPERTY_KEY))) {
             return true;

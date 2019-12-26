@@ -1,4 +1,5 @@
 /// <reference path="dao/appSettingsDAO.ts" />
+/// <reference path="utils/pageFragmentCreator.ts" />
 /*
     要做的事
     1. 檢查使用者有沒有訓練項目設定？
@@ -13,20 +14,28 @@
             失敗 => 輸出錯誤訊息頁面
         b. 輸出頁面內容
 */
+let appStatus = null;
 function doGet (e) {
-    if (didAppSettingsInitialized()) {
-        //todo
+    appStatus = {
+        isSetup:false
+    };
+
+    if (didAppSetup()) {
+        appStatus.isSetup = true;
     } else {
-        try {
-            return HtmlService.createTemplateFromFile('html/index.html').evaluate();
-        } catch(e) {
-            Logger.log(e);
-            return HtmlService.createHtmlOutputFromFile('html/internal-server-error.html');
-        }
+        //todo
+    }
+    try {
+        return getHtmlFromFile('view/html/index.html')
+                    .append(`<script> appStatus = ${JSON.stringify(appStatus)}; </script>`)
+                    .append(getHtmlFromFile('view/script/script.html').getContent());
+    } catch(e) {
+        Logger.log(e);
+        return getHtmlFromFile('view/html/internal-server-error.html');
     }
 }
 
-function initializeAppSettings() {
+function setup() {
     
 }
 
