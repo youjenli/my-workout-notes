@@ -1,3 +1,89 @@
+<!--
+    客戶端要做的事
+    1. 了解系統初始化狀態
+        初始 => 執行 2.
+        沒初始 => 執行初始化流程
+                    a. 產生設定表單給使用者
+                    b. 提交初始化設定
+                        成功 => 執行 2.
+                        失敗 => todo
+    2. 啟動訓練量提交服務
+        A. 利用伺服器送來的訓練項目產生空白提交表單
+        B. 提交訓練項目
+            成功 => 再執行 A
+            失敗 => 指出錯誤
+-->
+<?!= getHtmlAsStringFromTemplate('view/script/utils.html'); ?>
 <script>
-    console.log(`is setup ? ${appStatus.isSetup}`);
+    const rootNode = $('#root');
+    function directUserToSetupApp() {
+        return new Promise(resolve => {
+            rootNode
+                .append([
+                    $('<h5>')
+                        .attr('id', 'guidance')
+                        .append(['你的應用程式還未設定。', $('<br/>'), '請輸入以下資訊，然後按下「建立設定」讓系統為您建立初始化設定。']),
+                    $('<label>').attr('for', 'rootPath').text('存放應用程式設定與訓練紀錄的目錄名稱'),
+                    $('<br>'),
+                    $('<input>')
+                        .attr({
+                            type:'text',
+                            id:'rootPath',
+                            value:'my-workouts'
+                        }),
+                    $('<br>'),
+                    $('<label>'),
+                    $('<button>')
+                        .attr({
+                            type:'button'
+                        }).text('建立設定')
+                        .on('click', () => {
+                            google.script.run
+                                .withSuccessHandler(response => {
+                                    if (isObjectLike(response) && response.isSuccessful) {
+                                        rootNode.empty()
+                                            .append($('<div>').text('初始化成功'))
+                                            .append(
+                                                $(`<div>`).text('檔案路徑：')
+                                                    .append(
+                                                        $('<a>').text(response.url)
+                                                            .attr({
+                                                               href:response.url,
+                                                               target:'_blank'
+                                                            })
+                                                )
+                                            )
+                                            .append(
+                                                $('<button>')
+                                                    .attr({
+                                                        type:'button'
+                                                    }).text('下一步')
+                                                    .on('click', () => {
+                                                        rootNode.empty();
+                                                        resolve();
+                                                    })
+                                            )
+                                    } else {
+                                        $('#guidance').empty().text('初始化失敗，請再試一次')
+                                    }
+                                })
+                                /*.withFailureHandler(() => { })*/
+                                .setup({
+                                    rootPath:$('#rootPath').val()
+                                });
+                        })
+                ]);
+        });
+    }
+
+    $(function(){
+        if (appStatus.wasSetup) {
+
+            $('<div>')
+                .text('app status was setup')
+                .appendTo(rootNode);
+        } else {
+            directUserToSetupApp();
+        }
+    });
 </script>

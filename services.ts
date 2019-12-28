@@ -14,29 +14,45 @@
             失敗 => 輸出錯誤訊息頁面
         b. 輸出頁面內容
 */
-let appStatus = null;
 function doGet (e) {
-    appStatus = {
-        isSetup:false
+    let appStatus = {
+        wasSetup:false
     };
 
     if (didAppSetup()) {
-        appStatus.isSetup = true;
-    } else {
+        appStatus.wasSetup = true;
         //todo
     }
     try {
-        return getHtmlFromFile('view/html/index.html')
-                    .append(`<script> appStatus = ${JSON.stringify(appStatus)}; </script>`)
-                    .append(getHtmlFromFile('view/script/script.html').getContent());
+        return getHtmlOutputFromFile('view/html/index.html')
+                    .setTitle('我的訓練紀錄')
+                    .append(createScriptTagAsString(`appStatus = ${JSON.stringify(appStatus)};`))
+                    .append(getHtmlAsStringFromTemplate('view/script/script.html'));
     } catch(e) {
         Logger.log(e);
-        return getHtmlFromFile('view/html/internal-server-error.html');
+        return getHtmlOutputFromFile('view/html/internal-server-error.html');
     }
 }
 
-function setup() {
-    
+function setup(params:{ rootPath:string }) {
+    if (isObjectLike(params) && isString(params.rootPath) && isNotBlank(params.rootPath.trim())) {
+        try {
+            const url = initialize(params.rootPath);
+            return {
+                isSuccessful:true,
+                url:url
+            }
+        } catch(e) {
+            Logger.log(e);
+            return {
+                isSuccessful:false
+            }
+        }
+    } else {
+        return {
+            isSuccessful:false
+        }
+    }
 }
 
 /*
