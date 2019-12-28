@@ -21,14 +21,12 @@
 <?!= getHtmlAsStringFromTemplate('view/script/workout-note.html'); ?>
 <script>
     $(function(){
-        if (application.wasSetup) {
-
-            $('<div>')
-                .text('app status was setup')
-                .appendTo(rootNode);
-            console.log(JSON.stringify(application));
-        } else {
-            directUserToSetupApp();
-        }
+        directUserToSetupApp()
+            .then(() => {
+                $('<div>')
+                    .text('app status was setup')
+                    .appendTo(rootNode);
+                console.log(JSON.stringify(application));
+            });
     });
 </script>
