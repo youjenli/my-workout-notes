@@ -21,7 +21,8 @@ function doGet (e) {
 
     if (didAppSetup()) {
         application.wasSetup = true;
-        //application['exercises'] = [];
+        application['settings'] = loadGroupedSettings(GroupedSettings.APPLICATION);
+        application['exercises'] = loadGroupedSettings(GroupedSettings.EXCERCISES);
     }
     try {
         return getHtmlOutputFromFile('view/html/index.html')

@@ -33,13 +33,18 @@ function didAppSetup():boolean {
     }
 }
 
+enum GroupedSettings {
+    APPLICATION = 'application',
+    EXCERCISES = 'exercises'
+}
+
 const defaultSettingsOfApp = {
-    name:'application',
+    name:GroupedSettings.APPLICATION,
     properties:[{ name:'參數名稱', indexName:'name' }, { name:'參數值', indexName:'value' },
                 { name:'說明', indexName:'description'}],
     items:[
         {
-            name:'預設單位',
+            name:'defaultUnit',
             value:'kg',
             description:'介面預設使用的單位'
         }
@@ -47,14 +52,14 @@ const defaultSettingsOfApp = {
 }
 
 const defaultSettingsOfExercises = {
-    name:'exercises',
-    properties:[{ name:'訓練項目', indexName:'exercise' }],
+    name:GroupedSettings.EXCERCISES,
+    properties:[{ name:'訓練項目', indexName:'name' }],
     items:[
-        { exercise:'啞鈴聳肩' }, { exercise:'坐姿肩推機' }, { exercise:'固定式側平舉' }, { exercise:'啞鈴側平舉' },
-        { exercise:'坐姿推胸機' },{ exercise:'蝴蝶機' },{ exercise:'臥推' },{ exercise:'啞鈴二頭肌' },
-        { exercise:'三頭肌訓練機' },{ exercise:'坐姿划船機' },{ exercise:'高拉訓練機' },{ exercise:'闊背引體向上' },
-        { exercise:'腰部旋轉機' },{ exercise:'深蹲' },{ exercise:'腿部推蹬機' },{ exercise:'曲腿訓練機' },
-        { exercise:'腿部伸展機' }
+        { name:'啞鈴聳肩' }, { name:'坐姿肩推機' }, { name:'固定式側平舉' }, { name:'啞鈴側平舉' },
+        { name:'坐姿推胸機' },{ name:'蝴蝶機' },{ name:'臥推' },{ name:'啞鈴二頭肌' },
+        { name:'三頭肌訓練機' },{ name:'坐姿划船機' },{ name:'高拉訓練機' },{ name:'闊背引體向上' },
+        { name:'腰部旋轉機' },{ name:'深蹲' },{ name:'腿部推蹬機' },{ name:'曲腿訓練機' },
+        { name:'腿部伸展機' }
     ]
 }
 
@@ -119,33 +124,42 @@ function initialize(rootPath:string) {
         有 => 直接調用
         無 => 讀取應用程式設定檔，然後將設定寫入快取
 */
-function read(groupNameOfSettings:string) {
+function loadGroupedSettings(groupOfSettings:GroupedSettings) {
     const userProps = PropertiesService.getUserProperties();
     const spreadSheetId = userProps.getProperty(KEY_TO_RETRIEVE_APP_CONFIGURATION_FILE);
     if (spreadSheetId != null) {
-        const sheet = SpreadsheetApp.openById(spreadSheetId)
-                        .getSheetByName(defaultSettingsOfApp.name);
-        /*switch (groupNameOfSettings) {
+        const spreadSheet = SpreadsheetApp.openById(spreadSheetId);
+        switch (groupOfSettings) {
             case defaultSettingsOfApp.name:
-                const dataOfAppSettings = sheet.getRange(2, 1, sheet.getLastRow(), 3).getValues();
+                const sheetOfAppSettings = spreadSheet.getSheetByName(defaultSettingsOfApp.name);
                 const appSettings = {};
-                for ( let row = 0 ; row < dataOfAppSettings.length ; row ++) {
-                    appSettings[dataOfAppSettings[row][0]] = {
-                        value:dataOfAppSettings[row][1],
-                        description:dataOfAppSettings[row][2]
+                const listOfSettings = sheetOfAppSettings.getRange(2, 1, sheetOfAppSettings.getLastRow() - 1, 1).getValues();
+                listOfSettings.forEach(row => {
+                    appSettings[row[0]] = {};
+                })
+
+                const dataOfAppSettings = sheetOfAppSettings.getRange(2, 1, sheetOfAppSettings.getLastRow() - 1, defaultSettingsOfApp.properties.length).getValues();
+                dataOfAppSettings.forEach(dataOfAppSetting => {
+                    for ( let col = 1 ; col < dataOfAppSetting.length ; col ++ ) {
+                        appSettings[dataOfAppSetting[0]][defaultSettingsOfApp.properties[col].indexName] = dataOfAppSetting[col];
                     }
-                }
+                })
                 return appSettings;
             case defaultSettingsOfExercises.name:
-                const dataOfExercises = sheet.getRange(1, 1, sheet.getLastRow(), 1).getValues();
+                const sheetOfExercises = spreadSheet.getSheetByName(defaultSettingsOfExercises.name);
                 const exercises = [];
-                for ( let row = 0 ; row < dataOfExercises.length ; row ++) {//todo
-                    exercises.push(dataOfExercises[row][0]);
-                }
+                const dataOfExercises = sheetOfExercises.getRange(2, 1, sheetOfExercises.getLastRow() - 1, defaultSettingsOfExercises.properties.length).getValues();
+                dataOfExercises.forEach(dataOfExercise => {
+                    const exercise = {};
+                    for (let col = 0 ; col < dataOfExercise.length ; col ++) {
+                        exercise[defaultSettingsOfExercises.properties[col].indexName] = dataOfExercise[col];
+                    }
+                    exercises.push(exercise);
+                })
                 return exercises;
             default:
                 return null;//todo
-        }*/
+        }
     } else {
         return null;//todo 更嚴謹的報告狀況
     }
