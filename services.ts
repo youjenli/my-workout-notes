@@ -15,18 +15,18 @@
         b. 輸出頁面內容
 */
 function doGet (e) {
-    let appStatus = {
+    let application = {
         wasSetup:false
     };
 
     if (didAppSetup()) {
-        appStatus.wasSetup = true;
-        //todo
+        application.wasSetup = true;
+        //application['exercises'] = [];
     }
     try {
         return getHtmlOutputFromFile('view/html/index.html')
                     .setTitle('我的訓練紀錄')
-                    .append(createScriptTagAsString(`appStatus = ${JSON.stringify(appStatus)};`))
+                    .append(createScriptTagAsString(`application = ${JSON.stringify(application)};`))
                     .append(getHtmlAsStringFromTemplate('view/script/script.html'));
     } catch(e) {
         Logger.log(e);
