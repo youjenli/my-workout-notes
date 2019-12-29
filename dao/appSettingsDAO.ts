@@ -33,18 +33,36 @@ function didAppSetup():boolean {
     }
 }
 
-enum GroupedSettings {
+enum SettingsGroup {
     APPLICATION = 'application',
-    EXCERCISES = 'exercises'
+    EXCERCISES = 'exercises',
+    UNITS_OF_MEASUREMENT = 'units of measurement'
+}
+
+const unitsOfMeasurement = {
+    kg:{
+        functionOfConversion:{
+            lb:function(weight) {
+                return weight * 2.20462; 
+            }
+        }
+    },
+    lb:{
+        functionOfConversion:{
+            kg:function(weight) {
+                return weight * 0.453592; 
+            }
+        }
+    }
 }
 
 const defaultSettingsOfApp = {
-    name:GroupedSettings.APPLICATION,
+    name:SettingsGroup.APPLICATION,
     properties:[{ name:'參數名稱', indexName:'name' }, { name:'參數值', indexName:'value' },
                 { name:'說明', indexName:'description'}],
     items:[
         {
-            name:'defaultUnit',
+            name:'default unit of measurement',
             value:'kg',
             description:'介面預設使用的單位'
         }
@@ -52,7 +70,7 @@ const defaultSettingsOfApp = {
 }
 
 const defaultSettingsOfExercises = {
-    name:GroupedSettings.EXCERCISES,
+    name:SettingsGroup.EXCERCISES,
     properties:[{ name:'訓練項目', indexName:'name' }],
     items:[
         { name:'啞鈴聳肩' }, { name:'坐姿肩推機' }, { name:'固定式側平舉' }, { name:'啞鈴側平舉' },
@@ -124,13 +142,13 @@ function initialize(rootPath:string) {
         有 => 直接調用
         無 => 讀取應用程式設定檔，然後將設定寫入快取
 */
-function loadGroupedSettings(groupOfSettings:GroupedSettings) {
+function loadGroupedSettings(groupOfSettings:SettingsGroup) {
     const userProps = PropertiesService.getUserProperties();
     const spreadSheetId = userProps.getProperty(KEY_TO_RETRIEVE_APP_CONFIGURATION_FILE);
     if (spreadSheetId != null) {
         const spreadSheet = SpreadsheetApp.openById(spreadSheetId);
         switch (groupOfSettings) {
-            case defaultSettingsOfApp.name:
+            case SettingsGroup.APPLICATION:
                 const sheetOfAppSettings = spreadSheet.getSheetByName(defaultSettingsOfApp.name);
                 const appSettings = {};
                 const listOfSettings = sheetOfAppSettings.getRange(2, 1, sheetOfAppSettings.getLastRow() - 1, 1).getValues();
@@ -144,8 +162,11 @@ function loadGroupedSettings(groupOfSettings:GroupedSettings) {
                         appSettings[dataOfAppSetting[0]][defaultSettingsOfApp.properties[col].indexName] = dataOfAppSetting[col];
                     }
                 })
+
+                appSettings['unitsOfMeasurement'] = Object.getOwnPropertyNames(unitsOfMeasurement);
+
                 return appSettings;
-            case defaultSettingsOfExercises.name:
+            case SettingsGroup.EXCERCISES:
                 const sheetOfExercises = spreadSheet.getSheetByName(defaultSettingsOfExercises.name);
                 const exercises = [];
                 const dataOfExercises = sheetOfExercises.getRange(2, 1, sheetOfExercises.getLastRow() - 1, defaultSettingsOfExercises.properties.length).getValues();
@@ -158,7 +179,7 @@ function loadGroupedSettings(groupOfSettings:GroupedSettings) {
                 })
                 return exercises;
             default:
-                return null;//todo
+                return null;
         }
     } else {
         return null;//todo 更嚴謹的報告狀況

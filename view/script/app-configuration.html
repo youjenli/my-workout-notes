@@ -57,7 +57,13 @@
                             })
                     ]);
             } else {
-                resolve();
+                $('<div>')
+                        .text('app status was setup')
+                        .appendTo(rootNode);
+                    console.log(JSON.stringify(application));
+                setTimeout(() => {
+                    resolve();
+                },2000);
             }
         });
     }

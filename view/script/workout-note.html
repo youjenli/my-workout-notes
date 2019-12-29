@@ -1,7 +1,56 @@
 <script>
-    /*if (Array.isArray(exercise) && exercise.length > 0) {
+    function loadWorkoutNote() {
+        if (Array.isArray(application.exercises) && application.exercises.length > 0) {
+            console.log(JSON.stringify(application.exercises));//todo
+            const optionsOfExercise = application.exercises.map(exercise => {
+                        return $('<option>').text(exercise.name).attr('value', exercise.name);
+                    });
 
-    } else {
-        rootNode
-    }*/
+            const defaultUnitOfMeasurement = application.settings['default unit of measurement'].value;
+            const optionsOfUnitOfMeasurement = application.settings['unitsOfMeasurement'].map(unit => {
+                        const option = $('<option>').text(unit).attr('value', unit);
+                        if (unit == defaultUnitOfMeasurement) {
+                            option.attr('selected', true);
+                        }
+                        return option;
+                    });
+                
+            const defaultTimeOfRest = 150;
+            function createFieldOfRestTime() {
+                const restTime = $('<input>').attr({
+                        type:'number',
+                        value:defaultTimeOfRest
+                    });
+                return $('<div>').append([
+                    restTime,
+                    $('<input>').attr({
+                        type:'range',
+                        max:300,
+                        min:15,
+                        value:defaultTimeOfRest
+                    }).on('input', function(){
+                        restTime.attr('value', this.value);
+                    })
+                ]);
+            }
+            const fieldOfRestTime = createFieldOfRestTime();
+                
+
+            rootNode.empty().append(
+                $('<div>').addClass('set')
+                    .append($('<select>').append(optionsOfExercise))
+                    .append([
+                        $('<input>').attr({
+                            type:'number',
+                            name:'weight',
+                            placeholder:'重量'
+                        }),
+                        $('<select>').append(optionsOfUnitOfMeasurement),
+                            fieldOfRestTime
+                    ])
+            )
+        } else {
+            //todo
+        }
+    }
 </script>
