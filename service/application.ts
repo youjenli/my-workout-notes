@@ -10,7 +10,7 @@ let app =
 
     const KEY_TO_RETRIEVE_ID_OF_APP_CONFIGURATION_FILE = 'id_of_app_configuration_file';
     const DEFAULT_NAME_OF_APP_SETTINGS_FILE = '我的重量訓練紀錄─應用程式設定檔';
-    const KEY_TO_RETRIEVE_PATH_OF_APPLICATION_DATA = 'path_of_application_data';
+    const KEY_TO_RETRIEVE_ID_OF_APPLICATION_DATA_FOLDER = 'path_of_application_data';
     const DEFAULT_PATH_OF_APPLICATION_DATA = '我的重量訓練紀錄';
 
     enum SettingsGroup {
@@ -125,19 +125,25 @@ let app =
     /*
         根據參數使用這模組附帶的範本建立應用程式範本
     */
-    function setup(rootPath:string) {
+    function setup(pathOfAppDataGivenByUser:string) {
+
+        let pathOfApplicationData = DEFAULT_PATH_OF_APPLICATION_DATA;
+        if (isNotBlank(pathOfAppDataGivenByUser)) {
+            pathOfApplicationData = pathOfAppDataGivenByUser;
+        }
+
         const spreadSheet = SpreadsheetApp.create(DEFAULT_NAME_OF_APP_SETTINGS_FILE);
         setupSpreadSheet(spreadSheet);  
 
         const spreadSheetId = spreadSheet.getId();
         const spreadSheetFile = DriveApp.getFileById(spreadSheetId);
-        DriveApp.createFolder(rootPath).addFile(spreadSheetFile);
-        DriveApp.getRootFolder().removeFile(spreadSheetFile);
+        const applicationFolder = DriveApp.getRootFolder().createFolder(pathOfApplicationData);
+        applicationFolder.addFile(spreadSheetFile);
 
         const userProps = PropertiesService.getUserProperties();
         userProps.setProperty(KEY_TO_RETRIEVE_ID_OF_APP_CONFIGURATION_FILE, spreadSheetId);
-        userProps.setProperty(KEY_TO_RETRIEVE_PATH_OF_APPLICATION_DATA, rootPath);
-        return spreadSheet.getUrl();
+        userProps.setProperty(KEY_TO_RETRIEVE_ID_OF_APPLICATION_DATA_FOLDER, applicationFolder.getId());
+        return applicationFolder.getUrl();
     }
 
     /*
@@ -190,8 +196,9 @@ let app =
         }
     }
 
-    function getPathOfApplicationData() {
-        return DEFAULT_PATH_OF_APPLICATION_DATA;
+    function getIdOfApplicationDataFolder() {
+        const userProps = PropertiesService.getUserProperties();
+        return userProps.getProperty(KEY_TO_RETRIEVE_ID_OF_APPLICATION_DATA_FOLDER);
     }
 
     return {
@@ -199,6 +206,6 @@ let app =
         setup:setup,
         SettingsGroup:SettingsGroup,
         loadGroupedSettings:loadGroupedSettings,
-        getPathOfApplicationData:getPathOfApplicationData
+        getPathOfApplicationData:getIdOfApplicationDataFolder
     }
 })();
