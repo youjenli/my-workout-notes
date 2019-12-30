@@ -1,4 +1,4 @@
-/// <reference path="dao/appSettingsDAO.ts" />
+/// <reference path="service/application.ts" />
 /// <reference path="utils/pageFragmentCreator.ts" />
 /*
     要做的事
@@ -15,33 +15,41 @@
         b. 輸出頁面內容
 */
 function doGet (e) {
-    let application = {
-        wasSetup:false
-    };
-
-    if (didAppSetup()) {
-        application.wasSetup = true;
-        application['settings'] = loadGroupedSettings(SettingsGroup.APPLICATION);
-        application['exercises'] = loadGroupedSettings(SettingsGroup.EXCERCISES);
-    }
-    try {
-        return getHtmlOutputFromFile('view/html/index.html')
-                    .setTitle('我的訓練紀錄')
-                    .append(createScriptTagAsString(`application = ${JSON.stringify(application)};`))
-                    .append(getHtmlAsStringFromTemplate('view/script/script.html'));
-    } catch(e) {
-        Logger.log(e);
-        return getHtmlOutputFromFile('view/html/internal-server-error.html');
+    const htmlOutput = getHtmlOutputFromTemplate('view/html/index.html')
+                            .setTitle('我的訓練紀錄')
+                            .append(getHtmlAsStringFromTemplate('view/script/workout-note.html'));
+    if (app.wasSetup()) {
+        try {
+            return htmlOutput.append(createScriptTagAsString(`
+                                startWorkoutNote({
+                                    settings:${JSON.stringify(app.loadGroupedSettings(app.SettingsGroup.APPLICATION))},
+                                    exercises:${JSON.stringify(app.loadGroupedSettings(app.SettingsGroup.EXCERCISES))}
+                                });
+                             `));
+        } catch(e) {
+            Logger.log(e);
+            return getHtmlOutputFromFile('view/html/internal-server-error.html');
+        }
+    } else {
+        try {
+            return htmlOutput.append(getHtmlAsStringFromTemplate('view/script/app-configuration.html'))
+                             .append(createScriptTagAsString(` configureApp().then(startWorkoutNote) `));
+        } catch(e) {
+            Logger.log(e);
+            return getHtmlOutputFromFile('view/html/internal-server-error.html');
+        }
     }
 }
 
 function setup(params:{ rootPath:string }) {
     if (isObjectLike(params) && isString(params.rootPath) && isNotBlank(params.rootPath.trim())) {
         try {
-            const url = initialize(params.rootPath);
+            const url = app.setup(params.rootPath);
             return {
                 isSuccessful:true,
-                url:url
+                url:url,
+                settings:app.loadGroupedSettings(app.SettingsGroup.APPLICATION),
+                exercises:app.loadGroupedSettings(app.SettingsGroup.EXCERCISES)
             }
         } catch(e) {
             Logger.log(e);

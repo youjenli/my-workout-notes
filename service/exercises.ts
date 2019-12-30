@@ -1,3 +1,4 @@
+/// <reference path="application.ts" />
 /*
     這個模組的責任
     1. 建立訓練項目記錄文件
@@ -9,3 +10,13 @@
     2. 記錄訓練項目
     3. 取得訓練項目
 */
+const exercise = 
+(function(pathOfApplicationData:string){
+    function addNotesOfExercises() {
+
+    }
+
+    return {
+        addNotesOfExercises:addNotesOfExercises
+    }
+})(app.getPathOfApplicationData());

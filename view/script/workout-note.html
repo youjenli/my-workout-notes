@@ -1,13 +1,14 @@
 <script>
-    function loadWorkoutNote() {
+    function startWorkoutNote(data) {
 
         function createRecordOfWorkout() {
-            const defaultUnitOfMeasurement = application.settings['default unit of measurement'].value;
+            const defaultUnitOfMeasurement = data.settings['defaultUnitOfMeasurement'].value;
+
             function createLoadOfWorkout() {
                 function createOptionsOfExercises() {
-                    if (Array.isArray(application.exercises) && application.exercises.length > 0) {
+                    if (Array.isArray(data.exercises) && data.exercises.length > 0) {
                         return $('<select>').append(
-                                application.exercises.map(exercise => {
+                                data.exercises.map(exercise => {
                                     return $('<option>').text(exercise.name).attr('value', exercise.name);
                                 })
                             );
@@ -24,7 +25,7 @@
                                     placeholder:'重量'
                                 }),
                             $('<select>').append(
-                                    application.settings['unitsOfMeasurement'].map(unit => {
+                                    data.settings['unitsOfMeasurement'].map(unit => {
                                         const option = $('<option>').text(unit).attr('value', unit);
                                         if (unit == defaultUnitOfMeasurement) {
                                             option.attr('selected', true);

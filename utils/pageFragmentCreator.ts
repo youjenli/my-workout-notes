@@ -2,8 +2,12 @@ function getHtmlOutputFromFile(absolutePathOfFile:string):GoogleAppsScript.HTML.
     return  HtmlService.createHtmlOutputFromFile(absolutePathOfFile);
 }
 
+function getHtmlOutputFromTemplate(absolutePathOfFile:string):GoogleAppsScript.HTML.HtmlOutput {
+    return HtmlService.createTemplateFromFile(absolutePathOfFile).evaluate();
+}
+
 function getHtmlAsStringFromFile(absolutePathOfFile:string):string {
-    return  HtmlService.createHtmlOutputFromFile(absolutePathOfFile).getContent();
+    return HtmlService.createHtmlOutputFromFile(absolutePathOfFile).getContent();
 }
 
 function createScriptTagAsString(script:string):string {

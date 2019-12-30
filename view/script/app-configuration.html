@@ -1,9 +1,22 @@
+<? /*
+    客戶端要做的事
+    1. 了解系統初始化狀態
+        初始 => 執行 2.
+        沒初始 => 執行初始化流程
+                    a. 產生設定表單給使用者
+                    b. 提交初始化設定
+                        成功 => 執行 2.
+                        失敗 => todo
+    2. 啟動訓練量提交服務
+        A. 利用伺服器送來的訓練項目產生空白提交表單
+        B. 提交訓練項目
+            成功 => 再執行 A
+            失敗 => 指出錯誤
+*/ ?>
 <script>
-    function directUserToSetupApp() {
+    function configureApp() {
         return new Promise(resolve => {
-            if (!application.wasSetup) {
-                rootNode
-                    .append([
+            rootNode.append([
                         $('<h5>')
                             .attr('id', 'guidance')
                             .append(['你的應用程式還未設定。', $('<br/>'), '請輸入以下資訊，然後按下「建立設定」讓系統為您建立初始化設定。']),
@@ -26,8 +39,8 @@
                                     .withSuccessHandler(response => {
                                         if (isObjectLike(response) && response.isSuccessful) {
                                             rootNode.empty()
-                                                .append($('<div>').text('初始化成功'))
                                                 .append(
+                                                    $('<div>').text('初始化成功'),
                                                     $(`<div>`).text('檔案路徑：')
                                                         .append(
                                                             $('<a>').text(response.url)
@@ -35,16 +48,17 @@
                                                                    href:response.url,
                                                                    target:'_blank'
                                                                 })
-                                                    )
-                                                )
-                                                .append(
+                                                    ),
                                                     $('<button>')
                                                         .attr({
                                                             type:'button'
                                                         }).text('下一步')
                                                         .on('click', () => {
                                                             rootNode.empty();
-                                                            resolve();
+                                                            resolve({
+                                                                settings:response.settings,
+                                                                exercises:response.exercises
+                                                            });
                                                         })
                                                 )
                                         } else {
@@ -56,10 +70,6 @@
                                     });
                             })
                     ]);
-            } else {
-                console.log(JSON.stringify(application));//todo
-                resolve();
-            }
-        });
+            });
     }
 </script>
