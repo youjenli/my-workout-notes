@@ -9,7 +9,7 @@ let app =
 (function() {
 
     const KEY_TO_RETRIEVE_ID_OF_APP_CONFIGURATION_FILE = 'id_of_app_configuration_file';
-    const DEFAULT_NAME_OF_APP_SETTINGS_FILE = '我的重量訓練紀錄─應用程式設定檔';
+    const DEFAULT_FILE_NAME_OF_APP_SETTINGS = '我的重量訓練紀錄─應用程式設定檔';
     const KEY_TO_RETRIEVE_ID_OF_APPLICATION_DATA_FOLDER = 'path_of_application_data';
     const DEFAULT_PATH_OF_APPLICATION_DATA = '我的重量訓練紀錄';
 
@@ -125,25 +125,25 @@ let app =
     /*
         根據參數使用這模組附帶的範本建立應用程式範本
     */
-    function setup(pathOfAppDataGivenByUser:string) {
+    function setup(pathOfAppDataGivenByUser:string):GoogleAppsScript.Drive.Folder {
 
         let pathOfApplicationData = DEFAULT_PATH_OF_APPLICATION_DATA;
         if (isNotBlank(pathOfAppDataGivenByUser)) {
             pathOfApplicationData = pathOfAppDataGivenByUser;
         }
 
-        const spreadSheet = SpreadsheetApp.create(DEFAULT_NAME_OF_APP_SETTINGS_FILE);
+        const spreadSheet = SpreadsheetApp.create(DEFAULT_FILE_NAME_OF_APP_SETTINGS);
         setupSpreadSheet(spreadSheet);  
 
         const spreadSheetId = spreadSheet.getId();
         const spreadSheetFile = DriveApp.getFileById(spreadSheetId);
-        const applicationFolder = DriveApp.getRootFolder().createFolder(pathOfApplicationData);
-        applicationFolder.addFile(spreadSheetFile);
+        const appDataFolder = DriveApp.getRootFolder().createFolder(pathOfApplicationData);
+        appDataFolder.addFile(spreadSheetFile);
 
         const userProps = PropertiesService.getUserProperties();
         userProps.setProperty(KEY_TO_RETRIEVE_ID_OF_APP_CONFIGURATION_FILE, spreadSheetId);
-        userProps.setProperty(KEY_TO_RETRIEVE_ID_OF_APPLICATION_DATA_FOLDER, applicationFolder.getId());
-        return applicationFolder.getUrl();
+        userProps.setProperty(KEY_TO_RETRIEVE_ID_OF_APPLICATION_DATA_FOLDER, appDataFolder.getId());
+        return appDataFolder;
     }
 
     /*
@@ -196,16 +196,10 @@ let app =
         }
     }
 
-    function getIdOfApplicationDataFolder() {
-        const userProps = PropertiesService.getUserProperties();
-        return userProps.getProperty(KEY_TO_RETRIEVE_ID_OF_APPLICATION_DATA_FOLDER);
-    }
-
     return {
         wasSetup:wasSetup,
         setup:setup,
         SettingsGroup:SettingsGroup,
-        loadGroupedSettings:loadGroupedSettings,
-        getPathOfApplicationData:getIdOfApplicationDataFolder
+        loadGroupedSettings:loadGroupedSettings
     }
 })();

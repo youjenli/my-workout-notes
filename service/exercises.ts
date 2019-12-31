@@ -11,7 +11,7 @@
     3. 取得訓練項目
 */
 const exercise = 
-(function(pathOfApplicationData:string){
+(function(){
     function addNotesOfExercises() {
 
     }
@@ -19,4 +19,4 @@ const exercise =
     return {
         addNotesOfExercises:addNotesOfExercises
     }
-})(app.getPathOfApplicationData());
+})();
