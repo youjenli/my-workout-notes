@@ -27,6 +27,12 @@ let workout =
         }
     }
 
+    const columnsOfWorkout = {
+        name:'訓練活動',
+        properties:[{ name:'活動序號', indexName:'serialNo' },{ name:'開始時間', indexName:'startTime' },{ name:'結束時間', indexName:'endTime' },
+            { name:'備註', indexName:'remark' }]
+    };
+
     /*
         建立訓練活動紀錄的儲存檔
 
@@ -35,6 +41,11 @@ let workout =
     */
     function initialize(appDataFolder?:GoogleAppsScript.Drive.Folder):void {
         const spreadSheet = SpreadsheetApp.create(DEFAULT_FILE_NAME_OF_WORKOUT_RECORD);
+        const sheet = spreadSheet.getSheets()[0];
+        sheet.setName(columnsOfWorkout.name);
+        for (let col = 1 ; col <= columnsOfWorkout.properties.length ; col ++) {
+            sheet.getRange(1, col).setValue(columnsOfWorkout.properties[col - 1].name);
+        }
 
         const spreadSheetId = spreadSheet.getId();
         const spreadSheetFile = DriveApp.getFileById(spreadSheetId);
@@ -46,8 +57,13 @@ let workout =
         userProps.setProperty(KEY_TO_RETRIEVE_ID_OF_WORKOUT_RECORD, spreadSheetId);
     }
 
+    function getLastWorkout() {
+
+    }
+
     return {
         wasInitialized:wasInitialized,
-        initialize:initialize
+        initialize:initialize,
+        getLastWorkout:getLastWorkout
     }
 })();
