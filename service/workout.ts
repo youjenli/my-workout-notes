@@ -42,7 +42,7 @@ let workout =
     function initialize(appDataFolder?:GoogleAppsScript.Drive.Folder):void {
         const spreadSheet = SpreadsheetApp.create(DEFAULT_FILE_NAME_OF_WORKOUT_RECORD);
         const sheet = spreadSheet.getSheets()[0];
-        sheet.setName(columnsOfWorkout.name);
+        sheet.setName(columnsOfWorkout.name).setFrozenRows(1);
         for (let col = 1 ; col <= columnsOfWorkout.properties.length ; col ++) {
             sheet.getRange(1, col).setValue(columnsOfWorkout.properties[col - 1].name);
         }

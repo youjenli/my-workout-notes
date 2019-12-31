@@ -88,7 +88,7 @@ let app =
     function setupSpreadSheet(spreadSheet:GoogleAppsScript.Spreadsheet.Spreadsheet) {
         const sheets = spreadSheet.getSheets();
         const sheetOfAppSettings = sheets[0] || spreadSheet.insertSheet(0);
-        sheetOfAppSettings.setName(defaultSettingsOfApp.name);
+        sheetOfAppSettings.setName(defaultSettingsOfApp.name).setFrozenRows(1);
         for (let col = 1 ; col <= defaultSettingsOfApp.properties.length ; col ++) {
             sheetOfAppSettings.getRange(1, col).setValue(defaultSettingsOfApp.properties[col - 1].name);
         }
@@ -101,7 +101,7 @@ let app =
         }
     
         const sheetOfExercises = sheets[1] || spreadSheet.insertSheet(1);
-        sheetOfExercises.setName(defaultSettingsOfExercises.name);
+        sheetOfExercises.setName(defaultSettingsOfExercises.name).setFrozenRows(1);
         for (let col = 1 ; col <= defaultSettingsOfExercises.properties.length ; col ++) {
             sheetOfExercises.getRange(1, col).setValue(defaultSettingsOfExercises.properties[col - 1].name);
         }
