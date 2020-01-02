@@ -21,29 +21,10 @@ interface Workout extends WorkoutRecord {
 let workoutManager = 
 (function(){
 
-    const KEY_TO_RETRIEVE_ID_OF_WORKOUT_RECORD = 'id_of_workout_record';
     const KEY_TO_RETRIEVE_ONGOING_WORKOUT = 'startTime_of_ongoing_workout';
-    const DEFAULT_FILE_NAME_OF_WORKOUT_RECORD = '我的重量訓練紀錄─訓練活動紀錄';
 
     function wasInitialized():boolean {
-        const userProps = resourceFactory.getUserProps();
-        const key = userProps.getProperty(KEY_TO_RETRIEVE_ID_OF_WORKOUT_RECORD);
-        if (isNotBlank(key)) {
-            try {
-                const file = DriveApp.getFileById(key);
-                if (!file.isTrashed()) {
-                    return true;
-                }
-            } catch (e) {
-                Logger.log(e);
-                /* 既然此使用者參數無助我讀到設定檔，那就刪掉它。 */
-                userProps.deleteProperty(KEY_TO_RETRIEVE_ID_OF_WORKOUT_RECORD);
-                return false;
-            }
-            return false;
-        } else {
-            return false;
-        }
+        return resourceFactory.getWorkoutSource().exists();
     }
 
     const tableOfWorkoutRecord = {
@@ -59,19 +40,12 @@ let workoutManager =
         則該物件執行相關操作會失敗，因此一定要留這個參數給 app 初始化的函式傳遞 appDataFolder 物件
     */
     function initialize():void {
-        const spreadSheet = SpreadsheetApp.create(DEFAULT_FILE_NAME_OF_WORKOUT_RECORD);
+        const spreadSheet = resourceFactory.getWorkoutSource().get({ parentFolder:resourceFactory.getAppDataFolderSource().get() });
         const sheet = spreadSheet.getSheets()[0];
         sheet.setName(tableOfWorkoutRecord.name).setFrozenRows(1);
         for (let col = 1 ; col <= tableOfWorkoutRecord.columns.length ; col ++) {
             sheet.getRange(1, col).setValue(tableOfWorkoutRecord.columns[col - 1].name);
         }
-
-        const spreadSheetId = spreadSheet.getId();
-        const spreadSheetFile = DriveApp.getFileById(spreadSheetId);
-        resourceFactory.getAppDataFolder().get().addFile(spreadSheetFile);
-
-        const userProps = resourceFactory.getUserProps();
-        userProps.setProperty(KEY_TO_RETRIEVE_ID_OF_WORKOUT_RECORD, spreadSheetId);
     }
 
     function getOngoingWorkoutFromProps():WorkoutRecord {
@@ -89,30 +63,32 @@ let workoutManager =
         const ongoingWorkout = getOngoingWorkoutFromProps();
         if (ongoingWorkout != null) {
             ongoingWorkout['addExerciseNotes'] = () => {
-                //todo
+                /*
+                    1. 取得儲存目前 workout 之訓練項目的文件
+                    2. 寫入使用者提供的訓練項目
+                */
             }
             return <Workout>ongoingWorkout;
         } else {
-            return null;
+
+            return null;//todo 去訓練紀錄中查找沒完成時間的紀錄
         }
     }
 
     function startWorkout(name:string, remark:string):void {
-        const userProps = resourceFactory.getUserProps();
-        const spreadSheetId = userProps.getProperty(KEY_TO_RETRIEVE_ID_OF_WORKOUT_RECORD);
-        const spreadSheet = SpreadsheetApp.openById(spreadSheetId);
+        const spreadSheet = resourceFactory.getWorkoutSource().get();
         const sheet = spreadSheet.getSheetByName(tableOfWorkoutRecord.name);
+        const time = new Date();
 
         const workout:WorkoutRecord = {
             serialNo:null/* todo */,
-            name:isNotBlank(name) ? name : 'todo',/*todo */
-            startTime:new Date(),
+            name:isNotBlank(name) ? name : `${time.getFullYear()}${time.getMonth()}${time.getDay()} ${time.getHours()}:${time.getMinutes()} 進行的訓練`,
+            startTime:time,
             endTime:'',
             remark:isNotBlank(remark) ? remark : '',
             exercisesNoteId:''//todo
         }
         sheet.appendRow([workout.serialNo, workout.name, workout.startTime, workout.endTime, workout.remark]);
-        userProps.setProperty(KEY_TO_RETRIEVE_ONGOING_WORKOUT, JSON.stringify(workout));
     }
 
     function searchRowByWorkoutSerialNo(sheet:GoogleAppsScript.Spreadsheet.Sheet):GoogleAppsScript.Spreadsheet.Range {
@@ -128,8 +104,7 @@ let workoutManager =
         const userProps = resourceFactory.getUserProps();
         const ongoingWorkout = getOngoingWorkoutFromProps();
         if (ongoingWorkout != null) {
-            const workoutRecordId = userProps.getProperty(KEY_TO_RETRIEVE_ID_OF_WORKOUT_RECORD);
-            const spreadSheet = SpreadsheetApp.openById(workoutRecordId);
+            const spreadSheet = resourceFactory.getWorkoutSource().get();
             if (spreadSheet != null) {
                 const sheet = spreadSheet.getSheetByName(tableOfWorkoutRecord.name);
                 const range = searchRowByWorkoutSerialNo(sheet);

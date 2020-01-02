@@ -22,7 +22,7 @@ let app =
         檢查應用程式設定是否存在
     */
     function wasSetup():boolean {
-        return resourceFactory.getAppConfig().exists();
+        return resourceFactory.getAppConfigSource().exists();
     }
 
     const unitsOfMeasurement = {
@@ -71,9 +71,9 @@ let app =
         根據參數使用這模組附帶的範本建立應用程式範本
     */
     function setup(pathOfAppDataGivenByUser?:string):string {
-        const appDataFolder = resourceFactory.getAppDataFolder()
+        const appDataFolder = resourceFactory.getAppDataFolderSource()
                                              .get({nameOfResourceAssignedByUser:pathOfAppDataGivenByUser});
-        const spreadSheet = resourceFactory.getAppConfig().get({parentFolder:appDataFolder});
+        const spreadSheet = resourceFactory.getAppConfigSource().get({parentFolder:appDataFolder});
 
         const sheets = spreadSheet.getSheets();
         const sheetOfAppSettings = sheets[0] || spreadSheet.insertSheet(0);
@@ -120,7 +120,7 @@ let app =
             無 => 讀取應用程式設定檔，然後將設定寫入快取
     */
     function loadGroupedSettings(groupOfSettings:SettingsGroup) {
-        const spreadSheet = resourceFactory.getAppConfig().get();
+        const spreadSheet = resourceFactory.getAppConfigSource().get();
         switch (groupOfSettings) {
             case SettingsGroup.APPLICATION:
                 const sheetOfAppSettings = spreadSheet.getSheetByName(defaultSettingsOfApp.name);

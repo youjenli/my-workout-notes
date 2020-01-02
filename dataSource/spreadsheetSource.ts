@@ -6,21 +6,27 @@
     使用 JavaScript 類別的原因：
     這樣可以比較清楚向 typescript compiler 表明它依賴的物件之傳遞路徑，將來若要重構會比較省力。
 */
-class AppSettingsSource implements Resource<GoogleAppsScript.Spreadsheet.Spreadsheet> {
-    KEY_TO_RETRIEVE_ID_OF_APP_CONFIGURATION_FILE = 'id_of_app_configuration_file';
-    DEFAULT_FILE_NAME_OF_APP_SETTINGS = '我的重量訓練紀錄─應用程式設定檔';
-    appConfigFile:GoogleAppsScript.Drive.File = null;
+class SpreadsheetSource implements Resource<GoogleAppsScript.Spreadsheet.Spreadsheet> {
+    
+    propKeyOfSpreadsheetId = null;
+    defaultFileName = null;
     userProps:GoogleAppsScript.Properties.UserProperties = null;
+    spreadsheetFile:GoogleAppsScript.Drive.File = null;
 
-    constructor(userProps:GoogleAppsScript.Properties.UserProperties) {
+    constructor(
+            propKeyOfSpreadsheetId:string,
+            defaultFileName:string,
+            userProps:GoogleAppsScript.Properties.UserProperties) {
+        this.propKeyOfSpreadsheetId = propKeyOfSpreadsheetId;
+        this.defaultFileName = defaultFileName;
         this.userProps = userProps;
     }
 
     exists():boolean {
-        const id = this.userProps.getProperty(this.KEY_TO_RETRIEVE_ID_OF_APP_CONFIGURATION_FILE);
+        const id = this.userProps.getProperty(this.propKeyOfSpreadsheetId);
         if (isNotBlank(id)) {
-            this.appConfigFile = DriveApp.getFileById(id);
-            if (this.appConfigFile.isTrashed()) {
+            this.spreadsheetFile = DriveApp.getFileById(id);
+            if (this.spreadsheetFile.isTrashed()) {
                 return false;
             } else {
                 return true;
@@ -34,7 +40,7 @@ class AppSettingsSource implements Resource<GoogleAppsScript.Spreadsheet.Spreads
         let spreadSheet = null;
         if (!this.exists()) {
             let parent = DriveApp.getRootFolder();
-            let nameOfAppSettingsSpreadsheet = this.DEFAULT_FILE_NAME_OF_APP_SETTINGS;
+            let nameOfAppSettingsSpreadsheet = this.defaultFileName;
             if (isObjectLike(params)) {
                 if (isNotBlank(params.nameOfResourceAssignedByUser)) {
                     nameOfAppSettingsSpreadsheet = params.nameOfResourceAssignedByUser;
@@ -45,12 +51,12 @@ class AppSettingsSource implements Resource<GoogleAppsScript.Spreadsheet.Spreads
             }
             spreadSheet = SpreadsheetApp.create(nameOfAppSettingsSpreadsheet);
             const spreadSheetId = spreadSheet.getId();
-            this.appConfigFile = DriveApp.getFileById(spreadSheetId);
-            parent.addFile(this.appConfigFile);
-            this.userProps.setProperty(this.KEY_TO_RETRIEVE_ID_OF_APP_CONFIGURATION_FILE, spreadSheetId);
+            this.spreadsheetFile = DriveApp.getFileById(spreadSheetId);
+            parent.addFile(this.spreadsheetFile);
+            this.userProps.setProperty(this.propKeyOfSpreadsheetId, spreadSheetId);
         } else {
-            //todo 未來要留意若透過這個函式重覆取得 spreadsheet，則該 spreadsheet 有無 DriveApp Folder 第二個參考的操作會失敗的問題。
-            spreadSheet = SpreadsheetApp.open(this.appConfigFile);
+            //未來若透過這個函式重覆取得 spreadsheet，要留意 spreadsheet 有沒有像第二個 DriveApp Folder 參考的操作不會成功的問題。
+            spreadSheet = SpreadsheetApp.open(this.spreadsheetFile);
         }
         return spreadSheet;
     }

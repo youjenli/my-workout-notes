@@ -4,9 +4,10 @@ interface Resource<T> {
 }
 
 interface ResourceFactory {
-    getAppDataFolder:() => Resource<GoogleAppsScript.Drive.Folder>;
+    getAppDataFolderSource:() => Resource<GoogleAppsScript.Drive.Folder>;
     getUserProps:() => GoogleAppsScript.Properties.UserProperties;
-    getAppConfig:() => Resource<GoogleAppsScript.Spreadsheet.Spreadsheet>;
+    getAppConfigSource:() => Resource<GoogleAppsScript.Spreadsheet.Spreadsheet>;
+    getWorkoutSource:() => Resource<GoogleAppsScript.Spreadsheet.Spreadsheet>;
 }
 
 const resourceFactory:ResourceFactory = (function(){
@@ -14,13 +15,15 @@ const resourceFactory:ResourceFactory = (function(){
     let appDataFolder = null;
     let userProps = null;
     let appConfig = null;
-    const obj = {
-        getAppDataFolder:null,
+    let workoutRecord = null;
+    const obj:ResourceFactory = {
+        getAppDataFolderSource:null,
         getUserProps:null,
-        getAppConfig:null
+        getAppConfigSource:null,
+        getWorkoutSource:null
     }
 
-    obj.getAppDataFolder = ():Resource<GoogleAppsScript.Drive.Folder> => {
+    obj.getAppDataFolderSource = ():Resource<GoogleAppsScript.Drive.Folder> => {
         if (appDataFolder == null) {
             appDataFolder = new AppDataFolderSource(obj.getUserProps());
         }
@@ -34,11 +37,24 @@ const resourceFactory:ResourceFactory = (function(){
         return userProps;
     }
 
-    obj.getAppConfig = ():Resource<GoogleAppsScript.Spreadsheet.Spreadsheet> => {
+    obj.getAppConfigSource = ():Resource<GoogleAppsScript.Spreadsheet.Spreadsheet> => {
         if (appConfig == null) {
-            appConfig = new AppSettingsSource(obj.getUserProps());
+            appConfig = new SpreadsheetSource(
+                                'id_of_app_configuration_file',
+                                '我的重量訓練紀錄─應用程式設定檔',
+                                obj.getUserProps());
         }
         return appConfig;
+    }
+
+    obj.getWorkoutSource = ():Resource<GoogleAppsScript.Spreadsheet.Spreadsheet> => {
+        if (workoutRecord == null) {
+            workoutRecord = new SpreadsheetSource(
+                                'id_of_workout_record',
+                                '我的重量訓練紀錄─訓練活動紀錄',
+                                obj.getUserProps());
+        }
+        return workoutRecord;
     }
      
     return obj;
