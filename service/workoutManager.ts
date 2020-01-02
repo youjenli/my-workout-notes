@@ -1,5 +1,5 @@
 /// <reference path="application.ts" />
-/// <reference path="../utils/resourceManager.ts" />
+/// <reference path="../utils/resourceFactory.ts" />
 
 interface WorkoutRecord {
     serialNo:string;
@@ -15,8 +15,8 @@ interface Workout extends WorkoutRecord {
 }
 
 /*
-    注意，實驗發現若透過 IIFE 的參數傳遞 resourceManager 物件，則 Google Apps Script 執行時會讀不到，原因暫時無法理解。
-    因此目前先暫時直接存取 resourceManager 物件，未來再以更理想的方法組織程式碼，使開發者知道此物件依賴 resourceManager。
+    注意，實驗發現若透過 IIFE 的參數傳遞 resourceFactory 物件，則 Google Apps Script 執行時會讀不到，原因暫時無法理解。
+    因此目前先暫時直接存取 resourceFactory 物件，未來再以更理想的方法組織程式碼，使開發者知道此物件依賴 resourceFactory。
 */
 let workoutManager = 
 (function(){
@@ -26,7 +26,7 @@ let workoutManager =
     const DEFAULT_FILE_NAME_OF_WORKOUT_RECORD = '我的重量訓練紀錄─訓練活動紀錄';
 
     function wasInitialized():boolean {
-        const userProps = resourceManager.getUserProps();
+        const userProps = resourceFactory.getUserProps();
         const key = userProps.getProperty(KEY_TO_RETRIEVE_ID_OF_WORKOUT_RECORD);
         if (isNotBlank(key)) {
             try {
@@ -68,14 +68,14 @@ let workoutManager =
 
         const spreadSheetId = spreadSheet.getId();
         const spreadSheetFile = DriveApp.getFileById(spreadSheetId);
-        resourceManager.getAppDataFolder().get().addFile(spreadSheetFile);
+        resourceFactory.getAppDataFolder().get().addFile(spreadSheetFile);
 
-        const userProps = resourceManager.getUserProps();
+        const userProps = resourceFactory.getUserProps();
         userProps.setProperty(KEY_TO_RETRIEVE_ID_OF_WORKOUT_RECORD, spreadSheetId);
     }
 
     function getOngoingWorkoutFromProps():WorkoutRecord {
-        const userProps = resourceManager.getUserProps();
+        const userProps = resourceFactory.getUserProps();
         const ongoingWorkoutStr = userProps.getProperty(KEY_TO_RETRIEVE_ONGOING_WORKOUT);
         if (isNotBlank(ongoingWorkoutStr)) {
             const ongoingWorkout = JSON.parse(ongoingWorkoutStr);
@@ -98,7 +98,7 @@ let workoutManager =
     }
 
     function startWorkout(name:string, remark:string):void {
-        const userProps = resourceManager.getUserProps();
+        const userProps = resourceFactory.getUserProps();
         const spreadSheetId = userProps.getProperty(KEY_TO_RETRIEVE_ID_OF_WORKOUT_RECORD);
         const spreadSheet = SpreadsheetApp.openById(spreadSheetId);
         const sheet = spreadSheet.getSheetByName(tableOfWorkoutRecord.name);
@@ -125,7 +125,7 @@ let workoutManager =
     }
 
     function finishOngoingWorkout(time:string):void {
-        const userProps = resourceManager.getUserProps();
+        const userProps = resourceFactory.getUserProps();
         const ongoingWorkout = getOngoingWorkoutFromProps();
         if (ongoingWorkout != null) {
             const workoutRecordId = userProps.getProperty(KEY_TO_RETRIEVE_ID_OF_WORKOUT_RECORD);
