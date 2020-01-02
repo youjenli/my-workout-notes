@@ -1,4 +1,5 @@
 /// <reference path="application.ts" />
+/// <reference path="../utils/resourceManager.ts" />
 
 interface WorkoutRecord {
     serialNo:string;
@@ -13,6 +14,10 @@ interface Workout extends WorkoutRecord {
     addExerciseNotes:() => {}
 }
 
+/*
+    注意，實驗發現若透過 IIFE 的參數傳遞 resourceManager 物件，則 Google Apps Script 執行時會讀不到，原因暫時無法理解。
+    因此目前先暫時直接存取 resourceManager 物件，未來再以更理想的方法組織程式碼，使開發者知道此物件依賴 resourceManager。
+*/
 let workoutManager = 
 (function(){
 
@@ -21,7 +26,7 @@ let workoutManager =
     const DEFAULT_FILE_NAME_OF_WORKOUT_RECORD = '我的重量訓練紀錄─訓練活動紀錄';
 
     function wasInitialized():boolean {
-        const userProps = PropertiesService.getUserProperties();
+        const userProps = resourceManager.getUserProps();
         const key = userProps.getProperty(KEY_TO_RETRIEVE_ID_OF_WORKOUT_RECORD);
         if (isNotBlank(key)) {
             try {
@@ -53,7 +58,7 @@ let workoutManager =
         這邊之所以要以 appDataFolder 為參數，原因是我發現若在同一次請求的生命週期中以 id 取其他函式產生的資料匣物件，
         則該物件執行相關操作會失敗，因此一定要留這個參數給 app 初始化的函式傳遞 appDataFolder 物件
     */
-    function initialize(appDataFolder?:GoogleAppsScript.Drive.Folder):void {
+    function initialize():void {
         const spreadSheet = SpreadsheetApp.create(DEFAULT_FILE_NAME_OF_WORKOUT_RECORD);
         const sheet = spreadSheet.getSheets()[0];
         sheet.setName(tableOfWorkoutRecord.name).setFrozenRows(1);
@@ -63,16 +68,14 @@ let workoutManager =
 
         const spreadSheetId = spreadSheet.getId();
         const spreadSheetFile = DriveApp.getFileById(spreadSheetId);
-        if (appDataFolder != undefined) {
-            appDataFolder.addFile(spreadSheetFile);
-        }
+        resourceManager.getAppDataFolder().get().addFile(spreadSheetFile);
 
-        const userProps = PropertiesService.getUserProperties();
+        const userProps = resourceManager.getUserProps();
         userProps.setProperty(KEY_TO_RETRIEVE_ID_OF_WORKOUT_RECORD, spreadSheetId);
     }
 
     function getOngoingWorkoutFromProps():WorkoutRecord {
-        const userProps = PropertiesService.getUserProperties();
+        const userProps = resourceManager.getUserProps();
         const ongoingWorkoutStr = userProps.getProperty(KEY_TO_RETRIEVE_ONGOING_WORKOUT);
         if (isNotBlank(ongoingWorkoutStr)) {
             const ongoingWorkout = JSON.parse(ongoingWorkoutStr);
@@ -95,7 +98,7 @@ let workoutManager =
     }
 
     function startWorkout(name:string, remark:string):void {
-        const userProps = PropertiesService.getUserProperties();
+        const userProps = resourceManager.getUserProps();
         const spreadSheetId = userProps.getProperty(KEY_TO_RETRIEVE_ID_OF_WORKOUT_RECORD);
         const spreadSheet = SpreadsheetApp.openById(spreadSheetId);
         const sheet = spreadSheet.getSheetByName(tableOfWorkoutRecord.name);
@@ -122,7 +125,7 @@ let workoutManager =
     }
 
     function finishOngoingWorkout(time:string):void {
-        const userProps = PropertiesService.getUserProperties();
+        const userProps = resourceManager.getUserProps();
         const ongoingWorkout = getOngoingWorkoutFromProps();
         if (ongoingWorkout != null) {
             const workoutRecordId = userProps.getProperty(KEY_TO_RETRIEVE_ID_OF_WORKOUT_RECORD);

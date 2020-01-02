@@ -44,12 +44,12 @@ function doGet (e) {
 function setup(params:{ rootPath:string }) {
     if (isObjectLike(params) && isString(params.rootPath) && isNotBlank(params.rootPath.trim())) {
         try {
-            const appDataFolder = app.setup(params.rootPath);
-            workoutManager.initialize(appDataFolder);
+            const appDataFolderUrl = app.setup(params.rootPath);
+            workoutManager.initialize();
 
             return {
                 isSuccessful:true,
-                url:appDataFolder.getUrl(),
+                url:appDataFolderUrl,
                 settings:app.loadGroupedSettings(app.SettingsGroup.APPLICATION),
                 exercises:app.loadGroupedSettings(app.SettingsGroup.EXCERCISES)
             }

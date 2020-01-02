@@ -1,17 +1,19 @@
+/// <reference path="../utils/resourceManager.ts" />
 /*
     這個模組的責任
     1. 檢查應用程式設定是否存在
     2. 初始化應用程式設定
     3. 讀取應用程式設定
     4. 調整應用程式設定（待規劃）
+
+    注意，實驗發現若透過 IIFE 的參數傳遞 resourceManager 物件，則 Google Apps Script 執行時會讀不到，原因暫時無法理解。
+    因此目前先暫時直接存取 resourceManager 物件，未來再以更理想的方法組織程式碼，使開發者知道此物件依賴 resourceManager。
 */
 let app = 
 (function() {
 
     const KEY_TO_RETRIEVE_ID_OF_APP_CONFIGURATION_FILE = 'id_of_app_configuration_file';
     const DEFAULT_FILE_NAME_OF_APP_SETTINGS = '我的重量訓練紀錄─應用程式設定檔';
-    const KEY_TO_RETRIEVE_ID_OF_APPLICATION_DATA_FOLDER = 'path_of_application_data';
-    const DEFAULT_PATH_OF_APPLICATION_DATA = '我的重量訓練紀錄';
 
     enum SettingsGroup {
         APPLICATION = 'application',
@@ -23,7 +25,7 @@ let app =
         檢查應用程式設定是否存在
     */
     function wasSetup():boolean {
-        const userProps = PropertiesService.getUserProperties();
+        const userProps = resourceManager.getUserProps();
         const key = userProps.getProperty(KEY_TO_RETRIEVE_ID_OF_APP_CONFIGURATION_FILE);
         if (isNotBlank(key)) {
             try {
@@ -125,25 +127,18 @@ let app =
     /*
         根據參數使用這模組附帶的範本建立應用程式範本
     */
-    function setup(pathOfAppDataGivenByUser:string):GoogleAppsScript.Drive.Folder {
-
-        let pathOfApplicationData = DEFAULT_PATH_OF_APPLICATION_DATA;
-        if (isNotBlank(pathOfAppDataGivenByUser)) {
-            pathOfApplicationData = pathOfAppDataGivenByUser;
-        }
-
+    function setup(pathOfAppDataGivenByUser?:string):string {
         const spreadSheet = SpreadsheetApp.create(DEFAULT_FILE_NAME_OF_APP_SETTINGS);
         setupSpreadSheet(spreadSheet);  
 
         const spreadSheetId = spreadSheet.getId();
         const spreadSheetFile = DriveApp.getFileById(spreadSheetId);
-        const appDataFolder = DriveApp.getRootFolder().createFolder(pathOfApplicationData);
+        const appDataFolder = resourceManager.getAppDataFolder().get(pathOfAppDataGivenByUser);
         appDataFolder.addFile(spreadSheetFile);
 
-        const userProps = PropertiesService.getUserProperties();
+        const userProps = resourceManager.getUserProps();
         userProps.setProperty(KEY_TO_RETRIEVE_ID_OF_APP_CONFIGURATION_FILE, spreadSheetId);
-        userProps.setProperty(KEY_TO_RETRIEVE_ID_OF_APPLICATION_DATA_FOLDER, appDataFolder.getId());
-        return appDataFolder;
+        return appDataFolder.getUrl();
     }
 
     /*
@@ -153,7 +148,7 @@ let app =
             無 => 讀取應用程式設定檔，然後將設定寫入快取
     */
     function loadGroupedSettings(groupOfSettings:SettingsGroup) {
-        const userProps = PropertiesService.getUserProperties();
+        const userProps = resourceManager.getUserProps();
         const spreadSheetId = userProps.getProperty(KEY_TO_RETRIEVE_ID_OF_APP_CONFIGURATION_FILE);
         if (spreadSheetId != null) {
             const spreadSheet = SpreadsheetApp.openById(spreadSheetId);
