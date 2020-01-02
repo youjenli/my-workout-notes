@@ -45,7 +45,7 @@ function setup(params:{ rootPath:string }) {
     if (isObjectLike(params) && isString(params.rootPath) && isNotBlank(params.rootPath.trim())) {
         try {
             const appDataFolder = app.setup(params.rootPath);
-            workout.initialize(appDataFolder);
+            workoutManager.initialize(appDataFolder);
 
             return {
                 isSuccessful:true,

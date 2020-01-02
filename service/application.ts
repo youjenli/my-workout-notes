@@ -93,7 +93,7 @@ let app =
             sheetOfAppSettings.getRange(1, col).setValue(defaultSettingsOfApp.properties[col - 1].name);
         }
         for (let row = 2 ; row <= defaultSettingsOfApp.items.length + 1 ; row ++) {
-            const item = defaultSettingsOfApp.items[row - 2]
+            const item = defaultSettingsOfApp.items[row - 2];
             defaultSettingsOfApp.properties.forEach( (prop, idx) => {
                 sheetOfAppSettings.getRange(row, idx + 1)
                     .setValue(item[prop.indexName]);
