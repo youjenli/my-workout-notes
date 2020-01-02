@@ -22,7 +22,7 @@ const resourceFactory:ResourceFactory = (function(){
 
     obj.getAppDataFolder = ():Resource<GoogleAppsScript.Drive.Folder> => {
         if (appDataFolder == null) {
-            appDataFolder = new AppDataFolder(obj);
+            appDataFolder = new AppDataFolderSource(obj.getUserProps());
         }
         return appDataFolder;
     }
@@ -36,7 +36,7 @@ const resourceFactory:ResourceFactory = (function(){
 
     obj.getAppConfig = ():Resource<GoogleAppsScript.Spreadsheet.Spreadsheet> => {
         if (appConfig == null) {
-            appConfig = new AppSettings(obj);
+            appConfig = new AppSettingsSource(obj.getUserProps());
         }
         return appConfig;
     }
